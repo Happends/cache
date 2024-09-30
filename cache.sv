@@ -8,27 +8,27 @@ module cache
         parameter BLOCK_BITS=2)
 
     (   input   clk,
-                reset_n,
-                request,
-                [RAM_ADDRESS_BITS-1:0] address, 
-                [DATA_WIDTH-1:0] write_data, 
-                write_en,
+        input   reset_n,
+        input   request,
+        input   [RAM_ADDRESS_BITS-1:0] address, 
+        input	[DATA_WIDTH-1:0] write_data, 
+        input	 write_en,
 
         output  [DATA_WIDTH-1:0] read_data,
-                valid,
-                miss,
-                [RAM_ADDRESS_BITS-1:0] prop_address, 
-                [DATA_WIDTH-1:0] prop_write_data, 
-                prop_write_en);
+        output  valid,
+	output  miss,
+        output  [RAM_ADDRESS_BITS-1:0] prop_address, 
+        output	[DATA_WIDTH-1:0] prop_write_data, 
+        output   prop_write_en);
 
     
-    typedef struct {
-        logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS-ASOC_BITS-BLOCK_BITS-1:0] tag;
+    typedef struct packed {
+        logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag;
         logic [CACHE_ADDRESS_BITS-ASOC_BITS-BLOCK_BITS-1:0] index;
         logic [BLOCK_BITS-1: 0] offset;
     } cache_address_t;
 
-    typedef struct {
+    typedef struct packed {
         logic [RAM_ADDRESS_BITS-1:CACHE_ADDRESS_BITS-ASOC_BITS] tag;
         logic [DATA_WIDTH-1: 0] data;
     } cache_entry_t;
@@ -49,13 +49,15 @@ module cache
         end else begin
             $error("ERROR: cache settings wrong");
         end
-        cache <= '{ default: '0};
+        cache = '{ default: '0};
     end
     
     
     always_ff @(posedge clk)
     begin
-        cache_address <= address;
+	    if (reset_n) begin
+		address_net <= 0;
+	    end
     end
 
 
