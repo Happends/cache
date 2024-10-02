@@ -42,7 +42,7 @@ module cache
     	} cache_entry_t;
 
 	typedef struct {
-		cache_entry_t [ASOC_SIZE-1:0] block;
+		cache_entry_t block [ASOC_SIZE-1:0];
 	} cache_set_t;
 
 	logic [DATA_BITS-1:0] read_data_logic;
@@ -75,22 +75,22 @@ module cache
 			$error("ERROR: cache settings wrong");
         	end
         	$display("cache settings ok");
-        	cache = '{ default: '0};
+		cache = '{default: '{block: '{default: '{tag: '0, data: '{default: '1}}}}};
     	end
 
 
 	always_ff @(posedge clk)
 	begin
 		if (!reset_n) begin
-        		address_reg <= 0;
+        		address_reg <= 'b0;
         		read_en_reg <= 0;
-        		write_data_reg <= 0;
+        		write_data_reg <= 'b0;
         		write_en_reg <= 0;
 		end else begin
         		address_reg <= address;
         		read_en_reg <= read_en;
-        		write_data_reg <= write_data_reg;
-        		write_en_reg <= write_en_reg;
+        		write_data_reg <= write_data;
+        		write_en_reg <= write_en;
 		end
 	end
     
@@ -114,33 +114,51 @@ module cache
 	// 	end
     	// end
 	
-	logic found;
-	logic [ASOC_BITS-1:0] index;
+	// logic found;
+	// logic [ASOC_BITS-1:0] index;
 
 	always_comb begin
-		if (read_en) begin
-			found = 0;
-			index = 0;
+		if (read_en_reg) begin
 			foreach (cache[cache_address.index].block[i]) begin
-				if (cache[cache_address.index].block[i] == cache_address.tag) begin
-					found = 1;
-					index = i;
+				if (cache[cache_address.index].block[i].tag == cache_address.tag) begin 
+					read_data_logic = cache[cache_address.index].block[i].data[cache_address.offset];
+					miss_logic = 0;
+					valid_logic = 1;
 					break;
+				end else begin
+					read_data_logic = '0;
+					miss_logic = 1;
+					valid_logic = 0;
 				end
-			end	
-			if (!found) begin
-				read_data_logic = 0;
-				miss_logic = 1;
-				valid_logic = 0;
-			end else begin
-				read_data_logic = cache[cache_address.index].block[i].data[cache_address.offset];
-				miss_logic = 0;
-				valid_logic = 1;
 			end
 		end else begin
-			read_data_logic = 0;
+			read_data_logic = '0;
 			miss_logic = 0;
 			valid_logic = 0;
+		end
+	end
+
+	logic found;
+
+	always_ff @(posedge clk) begin	
+		if (write_en_reg) begin
+			found = 0;
+			foreach (cache[cache_address.index].block[i]) begin
+				if (cache[cache_address.index].block[i].tag == cache_address.tag) begin 
+					cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
+					found = 1;
+					break;
+				end 
+			end
+			if (!found) begin
+				foreach (cache[cache_address.index].block[i]) begin
+					if (cache[cache_address.index].block[i].tag == '0) begin 
+						cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
+						cache[cache_address.index].block[i].tag = cache_address.tag;
+						break;
+					end 
+				end
+			end
 		end
 	end
 
