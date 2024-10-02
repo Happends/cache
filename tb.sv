@@ -8,7 +8,7 @@ module tb;
 
 	logic clk;
 	logic reset_n;
-	logic request;
+	logic read_en;
 	logic [RAM_ADDRESS_BITS-1:0] address;
 	logic [DATA_WIDTH-1:0] write_data;
 	logic write_en;
@@ -23,7 +23,7 @@ module tb;
 	cache cache(
 		.clk(clk),
 		.reset_n(reset_n),
-		.request(request),
+		.read_en(read_en),
 		.address(address),
 		.write_data(write_data),
 		.write_en(write_en),
@@ -35,15 +35,34 @@ module tb;
 		.prop_write_data(prop_write_data),
 		.prop_write_en(prop_write_en)
 		);
+
+
+	always #5 clk = ~clk;
+
+
 	initial begin
 		$dumpfile("waves.vcd");
 		$dumpvars(0, top.cache);
-		clk = 0;
+
+		reset_n = 1;
+
+		#10;
+
+		address = 0;
+		read_en = 1;
+
+		#10;
+
+		read_en = 0;
+		address = 10;
+		write_en = 1;
+		write_data = 'h55;
+
+		#10;
+
+		write_en = 0;
+
 		#200;
-		for(int i = 0; i < 10; i++)
-			#200
-			clk = !clk;
-		#400;
 		$finish;
 	end
 
