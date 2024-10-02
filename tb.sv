@@ -1,7 +1,7 @@
 module tb;
-	parameter RAM_ADDRESS_BITS = 10;
+	parameter RAM_ADDRESS_BITS = 32;
 	parameter CACHE_ADDRESS_BITS = 5;
-	parameter DATA_WIDTH = 32;
+	parameter DATA_BITS = 32;
 	parameter ASOC_BITS = 1;
 	parameter BLOCK_BITS = 2;
 
@@ -10,17 +10,23 @@ module tb;
 	logic reset_n;
 	logic read_en;
 	logic [RAM_ADDRESS_BITS-1:0] address;
-	logic [DATA_WIDTH-1:0] write_data;
+	logic [DATA_BITS-1:0] write_data;
 	logic write_en;
 
-	logic [DATA_WIDTH-1:0] read_data;
+	logic [DATA_BITS-1:0] read_data;
 	logic valid;
 	logic miss;
 	logic [RAM_ADDRESS_BITS-1:0] prop_address;
-	logic [DATA_WIDTH-1:0] prop_write_data;
+	logic [DATA_BITS-1:0] prop_write_data;
 	logic prop_write_en;
 	
-	cache cache(
+	cache #(.RAM_ADDRESS_BITS(RAM_ADDRESS_BITS),
+		.CACHE_ADDRESS_BITS(CACHE_ADDRESS_BITS),
+		.DATA_BITS(DATA_BITS),
+		.ASOC_BITS(ASOC_BITS),
+		.BLOCK_BITS(BLOCK_BITS)
+		) cache (
+
 		.clk(clk),
 		.reset_n(reset_n),
 		.read_en(read_en),
@@ -54,6 +60,9 @@ module tb;
 		#10;
 
 		read_en = 0;
+
+		#10;
+
 		address = 10;
 		write_en = 1;
 		write_data = 'h55;
@@ -61,8 +70,38 @@ module tb;
 		#10;
 
 		write_en = 0;
+		read_en = 1;
+		
 
-		#200;
+		#10;
+
+		read_en = 0;
+		address = 'h5001;
+		write_data = 'hFAFA;
+		write_en = 1;
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 10;
+
+		#10
+
+		read_en = 1;
+		address = 'h5001;
+
+		#10
+
+		read_en = 1;
+		address = 10;
+
+		#10;
+
+		read_en = 0;
+
+		#50;
+
 		$finish;
 	end
 
