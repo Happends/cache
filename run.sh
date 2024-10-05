@@ -1,8 +1,10 @@
 
 
-error_msg=$(/home/alexhelmersson/Documents/programming/verilator/bin/verilator -f configs/verilator/verilator.f 2>&1 > /dev/null)
+msg=$(/home/alexhelmersson/Documents/programming/verilator/bin/verilator -f configs/verilator/verilator.f 2>&1)
 
-printf "error_msg: %s\n" "${error_msg}"
+printf "msg: %s\n" "${msg}"
+
+error_msg=$(echo "${msg}" | grep "%error")
 
 if [ -z "${error_msg}" ]; then
 
