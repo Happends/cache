@@ -14,7 +14,7 @@ module cache
         input	[DATA_BITS-1:0] write_data, 
         input	write_en,
 	input	ram_valid,
-	input	[DATA_BITS-1:0] ram_data [BLOCK_BITS-1:0],
+	input	[DATA_BITS-1:0] ram_data [BLOCK_SIZE-1:0],
 
 	output  [DATA_BITS-1:0] read_data,
         output  valid,
@@ -71,7 +71,10 @@ module cache
        	logic read_en_reg;
        	logic [DATA_BITS-1:0] write_data_reg;
         logic write_en_reg;
-    
+    	logic ram_valid_reg;
+	logic [DATA_BITS-1:0] ram_data_reg [BLOCK_SIZE-1:0];
+
+
 	cache_address_t cache_address;
 	assign cache_address = address_reg;
 
@@ -86,11 +89,6 @@ module cache
 	assign prop_write_en = prop_write_en_logic;
 
 	initial begin
-
-		$display("TAG_BITS: %d", TAG_BITS);
-		$display("INDEX_BITS: %d", INDEX_BITS);
-		$display("ASOC_SIZE: %d", ASOC_SIZE);
-		$display("BLOCK_SIZE: %d", BLOCK_SIZE);
 
 		if (RAM_ADDRESS_BITS < CACHE_ADDRESS_BITS) begin
 			$error("ERROR: cache settings wrong");
@@ -111,35 +109,33 @@ module cache
         		write_data_reg <= '0;
         		write_en_reg <= 0;
 
+			ram_valid_reg <= 0;
+			ram_data_reg <= '{default: '0};
+
+
+		end else if(stop_cache) begin
+        		address_reg <= address_reg;
+        		read_en_reg <= read_en_reg;
+        		write_data_reg <= write_data_reg;
+        		write_en_reg <= write_en_reg;
+
+			// not these two
+			ram_valid_reg <= ram_valid;
+			ram_data_reg <= ram_data;
+
 		end else begin
         		address_reg <= address;
         		read_en_reg <= read_en;
         		write_data_reg <= write_data;
         		write_en_reg <= write_en;
+
+			ram_valid_reg <= ram_valid;
+			ram_data_reg <= ram_data;
 		end
 	end
+
+
     
-    
-    	// always_ff @(posedge clk)
-    	// begin
-	//     	if (!reset_n) begin // 		read_data <= 0;
-        // 		valid <= 0;
-	// 		miss <= 0;
-        // 		prop_address <= 0;
-        // 		prop_write_data <= 0;
-        // 		prop_write_en <= 0;
-	// 	end else begin
-	// 		read_data <= read_data_reg;
-        // 		valid <= valid_reg;
-	// 		miss <= miss_reg;
-        // 		prop_address <= prop_address_reg;
-        // 		prop_write_data <= prop_write_data_reg;
-        // 		prop_write_en <= prop_write_en_reg;
-	// 	end
-    	// end
-	
-	// logic found;
-	// logic [ASOC_BITS-1:0] index;
 	
 	logic hit;
 	int  index;
@@ -153,35 +149,43 @@ module cache
 	logic replace_write;
 	logic replace_read;
 
-	assign read_hit = hit && read_en_reg;
-	assign write_hit = hit && write_en_reg;
+	logic stop_cache;
 
-	assign replace_read = replace && read_en_reg;
-	assign replace_write = replace && write_en_reg;
+	assign read_hit = hit & read_en_reg;
+	assign write_hit = hit & write_en_reg;
+
+	assign replace_read = replace & read_en_reg;
+	assign replace_write = replace & write_en_reg;
 
 	assign valid_logic = hit;
-	assign miss_logic = !hit;
 
-	always_comb begin
+	assign stop_cache = replace_read & ~ram_valid_reg;
+
+	//TODO: handle dirty bit
+	//TODO: write miss prop signals
+
+	always_comb begin: check_hit
 		if (read_en_reg || write_en_reg) begin
 			foreach (memory[cache_address.index].block[i]) begin
 				if (memory[cache_address.index].block[i].tag == cache_address.tag && memory[cache_address.index].block[i].control_bits.valid == 1) begin 
 					index = i;
 					hit = 1;
+					miss_logic = 0;
 					break;
 				end else begin
-					//TODO: handle dirty bit
 					hit = 0;
 					index = 0;
+					miss_logic = 1;
 				end
 			end
 		end else begin
 			hit = 0;
 			index = 0;
+			miss_logic = 0;
 		end
 	end
 
-	always_ff @(posedge clk)  begin
+	always_ff @(posedge clk)  begin: lsr_number_update
 		if (hit) begin
 			foreach (memory[cache_address.index].block[i]) begin
 				if(memory[cache_address.index].block[i].control_bits.lsr_number > memory[cache_address.index].block[index].control_bits.lsr_number) begin
@@ -201,33 +205,28 @@ module cache
 		end
 	end
 
-	always_comb begin
+	always_comb begin: read_request
 		if (read_hit) begin
 			read_data_logic = memory[cache_address.index].block[index].data[cache_address.offset];
 			prop_read_en_logic = 0;
 			prop_address_logic = '0;
-
-			// update control_bits.number
 		end else begin			
 			read_data_logic = '0;
 			prop_read_en_logic = 1;
 			prop_address_logic = address_reg;
-			// replacement policy
 		end
 	end
 
 
-	always_ff @(posedge clk) begin
+	always_ff @(posedge clk) begin: write_request
 		if (write_hit) begin
 			memory[cache_address.index].block[index].data[cache_address.offset] = write_data_reg;
 			memory[cache_address.index].block[index].control_bits.dirty = 1;
-			// update control_bits.number
-		end else if(write_en_reg) begin
-					end
+		end
 	end
 
-	always_comb begin
-		if (write_en_reg && miss_logic) begin
+	always_comb begin: replace_index_calc_LSR
+		if (miss_logic) begin
 			foreach (memory[cache_address.index].block[i]) begin
 				if (~|memory[cache_address.index].block[i].control_bits.lsr_number) begin
 					replace_index = i;
@@ -239,8 +238,6 @@ module cache
 				end
 			end
 			
-			// replacement policy
-
 		end else begin
 
 			replace_index = 0;
@@ -251,72 +248,21 @@ module cache
 
 	end
 
-	always_ff @(posedge clk) begin
+	always_ff @(posedge clk) begin: replace_block
 		if (replace_write) begin
 			memory[cache_address.index].block[replace_index].data[cache_address.offset] = write_data_reg;
 			memory[cache_address.index].block[replace_index].tag = cache_address.tag;
 			memory[cache_address.index].block[replace_index].control_bits.dirty = 1;
 			memory[cache_address.index].block[replace_index].control_bits.valid = 1;
+		end else if (replace_read) begin
+			if (ram_valid) begin
+				memory[cache_address.index].block[replace_index].data = ram_data_reg;
+				memory[cache_address.index].block[replace_index].tag = cache_address.tag;
+				memory[cache_address.index].block[replace_index].control_bits.dirty = 0;
+				memory[cache_address.index].block[replace_index].control_bits.valid = 1;
+			end
 		end
 	end
-
-
-
-	// always_comb begin
-	// 	if (read_en_reg) begin
-	// 		foreach (cache[cache_address.index].block[i]) begin
-	// 			if (cache[cache_address.index].block[i].tag == cache_address.tag && cache[cache_address.index].block[i].control_bits.valid == 1) begin 
-	// 				read_data_logic = cache[cache_address.index].block[i].data[cache_address.offset];
-	// 				miss_logic = 0;
-	// 				valid_logic = 1;
-	// 				prop_read_en_logic = 0;
-	// 				prop_address_logic = '0;
-	// 				break;
-	// 			end else begin
-	// 				read_data_logic = '0;
-	// 				miss_logic = 1;
-	// 				valid_logic = 0;
-	// 				prop_read_en_logic = 1;
-	// 				prop_address_logic = address_reg;
-	// 				//TODO: handle dirty bit
-	// 			end
-	// 		end
-	// 	end else begin
-	// 		read_data_logic = '0;
-	// 		miss_logic = 0;
-	// 		valid_logic = 0;
-	// 		prop_read_en_logic = 0;
-	// 		prop_address_logic = '0;
-	// 	end
-	// end
-
-	// logic found;
-
-	// // ff? to put it in cache mem should be ff? or could it be comb? if
-	// // comb -> could miss write through, dirty bit etc be in one clock?
-	// always_ff @(posedge clk) begin	
-	// 	if (write_en_reg) begin
-	// 		found = 0;
-	// 		foreach (cache[cache_address.index].block[i]) begin
-	// 			if (cache[cache_address.index].block[i].tag == cache_address.tag && cache[cache_address.index].block[i].control_bits.valid == 1) begin 
-	// 				cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
-	// 				cache[cache_address.index].block[i].control_bits.dirty = 1;
-	// 				found = 1;
-	// 				break;
-	// 			end 
-	// 		end
-	// 		if (!found) begin
-	// 			foreach (cache[cache_address.index].block[i]) begin
-	// 				if (cache[cache_address.index].block[i].tag == '0) begin 
-	// 					//TODO: handle dirty bit
-	// 					cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
-	// 					cache[cache_address.index].block[i].tag = cache_address.tag;
-	// 					break;
-	// 				end 
-	// 			end
-	// 		end
-	// 	end
-	// end
 
 
 

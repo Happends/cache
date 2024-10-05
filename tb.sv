@@ -13,7 +13,7 @@ module tb;
 	logic [DATA_BITS-1:0] write_data;
 	logic write_en;
 	logic ram_valid;
-	logic [DATA_BITS-1:0] ram_data [BLOCK_BITS-1:0];
+	logic [DATA_BITS-1:0] ram_data [BLOCK_BITS**2-1:0];
 
 	logic [DATA_BITS-1:0] read_data;
 	logic valid;
@@ -57,11 +57,8 @@ module tb;
 		$dumpvars(0, top.cache);
 
 		reset_n = 1;
-
-		#10;
-
-		address = 0;
-		read_en = 1;
+		read_en = 0;
+		write_en = 0;
 
 		#10;
 
@@ -69,11 +66,53 @@ module tb;
 
 		#10;
 
-		address = 'h10000;
-		write_en = 1;
-		write_data = 45;
+		read_en = 1;
+		address = 0;
 
 		#10;
+
+		read_en = 0;
+		write_en = 1;
+		write_data = 'haaaa;
+
+		#10;
+
+		address = 'h10000;
+		write_en = 1;
+		write_data = 'haaaa;
+		
+		ram_valid = 1;
+		ram_data = '{default: 'h2};
+
+		#10;
+
+		ram_valid = 0;
+		ram_data = '{default: '0};
+
+		read_en = 1;
+		address = 'h10000;
+		write_en = 0;
+		
+		#10;
+
+		read_en = 0;
+		assert(read_data == '0);
+			else $error("read_data not 0");
+		assert(prop_read_en == 1);
+			else $error("prop_read_en is not 1");
+		assert(prop_address == 'h10000);
+			else $error("prop_address is not as should be");
+
+		#10;
+
+		ram_valid = 1;
+		address = 'h10000;
+		ram_data = '{default: 'h3};
+
+		#10;
+
+		ram_valid = 0;
+		ram_data = '{default: '0};
 
 		address = 'h20000;
 		write_en = 1;
@@ -107,9 +146,24 @@ module tb;
 		address ='h30000;
 		read_en = 1;
 		
-		#10;;
+		#10;
 
 		address = 'h40000;
+		read_en = 1;
+		
+		#10;
+
+		address = 'h30000;
+		read_en = 1;
+		
+		#10;
+
+		address ='h20000;
+		read_en = 1;
+		
+		#10;
+
+		address = 'h30000;
 		read_en = 1;
 		
 		#10;
