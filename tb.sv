@@ -8,15 +8,18 @@ module tb;
 
 	logic clk;
 	logic reset_n;
-	logic read_en;
 	logic [RAM_ADDRESS_BITS-1:0] address;
+	logic read_en;
 	logic [DATA_BITS-1:0] write_data;
 	logic write_en;
+	logic ram_valid;
+	logic [DATA_BITS-1:0] ram_data [BLOCK_BITS-1:0];
 
 	logic [DATA_BITS-1:0] read_data;
 	logic valid;
 	logic miss;
 	logic [RAM_ADDRESS_BITS-1:0] prop_address;
+	logic prop_read_en;
 	logic [DATA_BITS-1:0] prop_write_data;
 	logic prop_write_en;
 	
@@ -29,15 +32,18 @@ module tb;
 
 		.clk(clk),
 		.reset_n(reset_n),
-		.read_en(read_en),
 		.address(address),
+		.read_en(read_en),
 		.write_data(write_data),
 		.write_en(write_en),
+		.ram_valid(ram_valid),
+		.ram_data(ram_data),
 	   
 		.read_data(read_data),
 		.valid(valid),
 		.miss(miss),
 		.prop_address(prop_address),
+		.prop_read_en(prop_read_en),
 		.prop_write_data(prop_write_data),
 		.prop_write_en(prop_write_en)
 		);
@@ -98,8 +104,17 @@ module tb;
 
 		#10;
 
-		read_en = 0;
+		read_en = 1;
+		address = 11;
 
+		#10;
+
+		read_en = 1;
+		address = 20;
+
+		#10;
+
+		read_en = 0;
 		#50;
 
 		$finish;

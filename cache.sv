@@ -13,11 +13,14 @@ module cache
         input   read_en,
         input	[DATA_BITS-1:0] write_data, 
         input	write_en,
+	input	ram_valid,
+	input	[DATA_BITS-1:0] ram_data [BLOCK_BITS-1:0],
 
 	output  [DATA_BITS-1:0] read_data,
         output  valid,
 	output  miss,
         output  [RAM_ADDRESS_BITS-1:0] prop_address, 
+	output	prop_read_en,
         output	[DATA_BITS-1:0] prop_write_data, 
         output  prop_write_en);
 
@@ -35,6 +38,7 @@ module cache
 
 	parameter BLOCK_SIZE = BLOCK_BITS**2;
 	parameter ASOC_SIZE = ASOC_BITS**2;
+
 	// typedef for cache entries
     	typedef struct {
         	logic [TAG_BITS-1:0] tag;
@@ -49,6 +53,7 @@ module cache
         logic valid_logic;
 	logic miss_logic;
        	logic [RAM_ADDRESS_BITS-1:0] prop_address_logic;
+	logic prop_read_en_logic;
         logic [DATA_BITS-1:0] prop_write_data_logic;
         logic prop_write_en_logic;
 
@@ -64,8 +69,12 @@ module cache
 	parameter INDEX_SIZE = INDEX_BITS**2;
 	cache_set_t cache [INDEX_SIZE-1:0];
 
-	assign miss = miss_logic;
 	assign read_data = read_data_logic;
+	assign valid = valid_logic;
+	assign miss = miss_logic;
+	assign prop_address = prop_address_logic;
+	assign prop_read_en = prop_read_en_logic;
+	assign prop_write_en = prop_write_en_logic;
 
 	initial begin
 		if (RAM_ADDRESS_BITS < CACHE_ADDRESS_BITS) begin
@@ -82,10 +91,11 @@ module cache
 	always_ff @(posedge clk)
 	begin
 		if (!reset_n) begin
-        		address_reg <= 'b0;
+        		address_reg <= '0;
         		read_en_reg <= 0;
-        		write_data_reg <= 'b0;
+        		write_data_reg <= '0;
         		write_en_reg <= 0;
+
 		end else begin
         		address_reg <= address;
         		read_en_reg <= read_en;
@@ -97,8 +107,7 @@ module cache
     
     	// always_ff @(posedge clk)
     	// begin
-	//     	if (!reset_n) begin
-	// 		read_data <= 0;
+	//     	if (!reset_n) begin // 		read_data <= 0;
         // 		valid <= 0;
 	// 		miss <= 0;
         // 		prop_address <= 0;
@@ -116,6 +125,7 @@ module cache
 	
 	// logic found;
 	// logic [ASOC_BITS-1:0] index;
+	
 
 	always_comb begin
 		if (read_en_reg) begin
@@ -124,22 +134,30 @@ module cache
 					read_data_logic = cache[cache_address.index].block[i].data[cache_address.offset];
 					miss_logic = 0;
 					valid_logic = 1;
+					prop_read_en_logic = 0;
+					prop_address_logic = '0;
 					break;
 				end else begin
 					read_data_logic = '0;
 					miss_logic = 1;
 					valid_logic = 0;
+					prop_read_en_logic = 1;
+					prop_address_logic = address_reg;
 				end
 			end
 		end else begin
 			read_data_logic = '0;
 			miss_logic = 0;
 			valid_logic = 0;
+			prop_read_en_logic = 0;
+			prop_address_logic = '0;
 		end
 	end
 
 	logic found;
 
+	// ff? to put it in cache mem should be ff? or could it be comb? if
+	// comb -> could miss write through, dirty bit etc be in one clock?
 	always_ff @(posedge clk) begin	
 		if (write_en_reg) begin
 			found = 0;
@@ -161,30 +179,6 @@ module cache
 			end
 		end
 	end
-
-
-    // HOW TO IMPLEMENT GETTING THE BLOCKS FROM RAM 
-    //      iterate every line for block?
-    //      get entire block through like 256 signals
-
-    // idea: request needed? or unneccessary since address shouldnt change unless new data wanted!?
-    // always_comb begin
-    //     if request begin
-    //         // index into cache
-    //         // for each entry in set (asoc_bits**2)
-    //             // if tag in cache
-    //                 // clock output index
-    //             // else
-    //                 // MISS
-    //                 // clock output miss and prop
-    //                 // wait for request from ram
-    //                 // clock set entry in cache and output request
-    //     end
-    // end
-
-    // always @ (posedge clk) begin
-    //     if request && 
-    // end
 
 
 
