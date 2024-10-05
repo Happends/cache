@@ -39,8 +39,16 @@ module cache
 	parameter BLOCK_SIZE = BLOCK_BITS**2;
 	parameter ASOC_SIZE = ASOC_BITS**2;
 
+
 	// typedef for cache entries
+	typedef struct packed {
+		logic valid;
+		logic dirty;
+		logic [ASOC_BITS-1:0] lsr_number;
+	} cache_entry_control_bits_t;
+
     	typedef struct {
+		cache_entry_control_bits_t control_bits;
         	logic [TAG_BITS-1:0] tag;
        		logic [DATA_BITS-1:0] data [BLOCK_SIZE-1:0];     // might have to be packed to match input from RAM
     	} cache_entry_t;
@@ -84,7 +92,7 @@ module cache
 			$error("ERROR: cache settings wrong");
         	end
         	$display("cache settings ok");
-		cache = '{default: '{block: '{default: '{tag: '0, data: '{default: '1}}}}};
+		cache = '{default: '{block: '{default: '{control_bits: '{valid: 0, dirty: 0, lsr_number: '0}, tag: '0, data: '{default: '1}}}}};
     	end
 
 
@@ -130,7 +138,7 @@ module cache
 	always_comb begin
 		if (read_en_reg) begin
 			foreach (cache[cache_address.index].block[i]) begin
-				if (cache[cache_address.index].block[i].tag == cache_address.tag) begin 
+				if (cache[cache_address.index].block[i].tag == cache_address.tag && cache[cache_address.index].block[i].control_bits.valid == 1) begin 
 					read_data_logic = cache[cache_address.index].block[i].data[cache_address.offset];
 					miss_logic = 0;
 					valid_logic = 1;
@@ -143,6 +151,7 @@ module cache
 					valid_logic = 0;
 					prop_read_en_logic = 1;
 					prop_address_logic = address_reg;
+					//TODO: handle dirty bit
 				end
 			end
 		end else begin
@@ -162,8 +171,9 @@ module cache
 		if (write_en_reg) begin
 			found = 0;
 			foreach (cache[cache_address.index].block[i]) begin
-				if (cache[cache_address.index].block[i].tag == cache_address.tag) begin 
+				if (cache[cache_address.index].block[i].tag == cache_address.tag && cache[cache_address.index].block[i].control_bits.valid == 1) begin 
 					cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
+					cache[cache_address.index].block[i].control_bits.dirty = 1;
 					found = 1;
 					break;
 				end 
@@ -171,6 +181,7 @@ module cache
 			if (!found) begin
 				foreach (cache[cache_address.index].block[i]) begin
 					if (cache[cache_address.index].block[i].tag == '0) begin 
+						//TODO: handle dirty bit
 						cache[cache_address.index].block[i].data[cache_address.offset] = write_data_reg;
 						cache[cache_address.index].block[i].tag = cache_address.tag;
 						break;
