@@ -1,16 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Sat Oct  5 05:06:52 2024
+[*] Sat Oct  5 20:13:09 2024
 [*]
 [dumpfile] "/home/alexhelmersson/Documents/programming/processors/cache/waves.vcd"
-[dumpfile_mtime] "Sat Oct  5 05:06:08 2024"
-[dumpfile_size] 1574
-[savefile] "/home/alexhelmersson/Documents/programming/processors/cache/gtkwave_signals.gtkw"
-[timestart] 24
+[dumpfile_mtime] "Sat Oct  5 20:12:29 2024"
+[dumpfile_size] 2639
+[savefile] "/home/alexhelmersson/Documents/programming/processors/cache/configs/gtkwave/gtkwave_signals.gtkw"
+[timestart] 0
 [size] 1593 600
 [pos] -1 -1
-*-4.696323 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.696323 28 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
+[treeopen] tb.cache.
+[treeopen] tb.cache.memory[0].
+[treeopen] tb.cache.memory[0].block[0].
+[treeopen] tb.cache.memory[0].block[1].
+[treeopen] tb.cache.memory[0].block[2].
+[treeopen] tb.cache.memory[0].block[3].
 [sst_width] 273
 [signals_width] 246
 [sst_expanded] 1
@@ -18,32 +24,31 @@
 @28
 tb.cache.clk
 @22
-tb.cache.address[31:0]
 tb.cache.address_reg[31:0]
 @28
-tb.cache.read_en
 tb.cache.read_en_reg
-@22
-tb.cache.read_data[31:0]
-tb.cache.read_data_logic[31:0]
-@28
-tb.cache.write_en
 tb.cache.write_en_reg
 @22
-tb.cache.write_data[31:0]
 tb.cache.write_data_reg[31:0]
 @28
-tb.cache.prop_read_en_logic
+tb.cache.hit
+tb.cache.miss
+tb.cache.valid
+@22
+tb.cache.read_data[31:0]
+@28
 tb.cache.prop_read_en
 @22
-tb.cache.prop_address_logic[31:0]
 tb.cache.prop_address[31:0]
 @28
-tb.cache.prop_write_en_logic
 tb.cache.prop_write_en
 @22
-tb.cache.prop_write_data_logic[31:0]
-@23
 tb.cache.prop_write_data[31:0]
+@28
+tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
+tb.cache.memory[0].block[2].control_bits.lsr_number[1:0]
+tb.cache.memory[0].block[1].control_bits.lsr_number[1:0]
+@29
+tb.cache.memory[0].block[0].control_bits.lsr_number[1:0]
 [pattern_trace] 1
 [pattern_trace] 0

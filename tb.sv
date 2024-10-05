@@ -1,8 +1,8 @@
 module tb;
 	parameter RAM_ADDRESS_BITS = 32;
-	parameter CACHE_ADDRESS_BITS = 5;
+	parameter CACHE_ADDRESS_BITS = 8;
 	parameter DATA_BITS = 32;
-	parameter ASOC_BITS = 1;
+	parameter ASOC_BITS = 2;
 	parameter BLOCK_BITS = 2;
 
 
@@ -67,6 +67,51 @@ module tb;
 
 		read_en = 0;
 
+		#10;
+
+		address = 'h10000;
+		write_en = 1;
+		write_data = 45;
+
+		#10;
+
+		address = 'h20000;
+		write_en = 1;
+		write_data = 45;
+
+		#10;
+
+		address = 'h30000;
+		write_en = 1;
+		write_data = 45;
+
+		#10;
+
+		write_en =  1;
+		address = 'h40000;
+		write_data = 45;
+		
+		#10;
+
+		write_en = 0;
+		address = 'h10000;
+		read_en = 1;
+		
+		#10;
+
+		address = 'h20000;
+		read_en = 1;
+		
+		#10;
+
+		address ='h30000;
+		read_en = 1;
+		
+		#10;;
+
+		address = 'h40000;
+		read_en = 1;
+		
 		#10;
 
 		address = 10;
