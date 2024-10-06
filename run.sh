@@ -4,7 +4,9 @@ msg=$(/home/alexhelmersson/Documents/programming/verilator/bin/verilator -f conf
 
 printf "msg: %s\n" "${msg}"
 
-error_msg=$(echo "${msg}" | grep "%error")
+error_msg=$(echo "${msg}" | grep "%Error")
+
+echo "error: ${error_msg}"
 
 if [ -z "${error_msg}" ]; then
 
