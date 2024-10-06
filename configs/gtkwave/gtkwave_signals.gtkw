@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Sat Oct  5 23:02:40 2024
+[*] Sun Oct  6 19:34:56 2024
 [*]
 [dumpfile] "/home/alexhelmersson/Documents/programming/processors/cache/waves.vcd"
-[dumpfile_mtime] "Sat Oct  5 23:02:21 2024"
-[dumpfile_size] 2749
+[dumpfile_mtime] "Sun Oct  6 19:34:22 2024"
+[dumpfile_size] 2354
 [savefile] "/home/alexhelmersson/Documents/programming/processors/cache/configs/gtkwave/gtkwave_signals.gtkw"
-[timestart] 29
+[timestart] 0
 [size] 1593 600
 [pos] -1 -1
-*-4.696323 50 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.696323 45 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.cache.
 [treeopen] tb.cache.memory[0].
@@ -23,7 +23,6 @@
 [sst_vpaned_height] 157
 @28
 tb.cache.clk
-@29
 tb.cache.stop_cache
 @22
 tb.cache.address_reg[31:0]
@@ -49,10 +48,19 @@ tb.cache.ram_data_reg[0][31:0]
 tb.cache.ram_data_reg[1][31:0]
 tb.cache.ram_data_reg[2][31:0]
 tb.cache.ram_data_reg[3][31:0]
-@28
+@c00028
 tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
+@28
+(0)tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
+(1)tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
+@1401200
+-group_end
+@28
 tb.cache.memory[0].block[2].control_bits.lsr_number[1:0]
 tb.cache.memory[0].block[1].control_bits.lsr_number[1:0]
 tb.cache.memory[0].block[0].control_bits.lsr_number[1:0]
+tb.cache.memory[0].block[0].control_bits.dirty
+@29
+tb.cache.memory[0].block[0].control_bits.valid
 [pattern_trace] 1
 [pattern_trace] 0

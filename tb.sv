@@ -6,7 +6,7 @@ module tb;
 	parameter BLOCK_BITS = 2;
 
 
-	logic clk;
+	logic clk = 1;
 	logic reset_n;
 	logic [RAM_ADDRESS_BITS-1:0] address;
 	logic read_en;
@@ -52,7 +52,7 @@ module tb;
 	always #5 clk = ~clk;
 
 
-	initial begin
+	task init();
 		$dumpfile("waves.vcd");
 		$dumpvars(0, top.cache);
 
@@ -62,9 +62,20 @@ module tb;
 
 		#10;
 
-		read_en = 0;
+	endtask
 
-		#10;
+	task zero_inputs();
+
+		read_en = 0;
+		write_en = 0;
+		address = 0;
+		ram_valid = 0;
+		ram_data = '{default: '0};
+		write_data = '0;
+
+	endtask
+
+	task stop_cache_from_reading_0();
 
 		read_en = 1;
 		address = 0;
@@ -75,6 +86,8 @@ module tb;
 		write_en = 1;
 		write_data = 'haaaa;
 
+		assert(cache.stop_cache == 1);
+
 		#10;
 
 		address = 'h10000;
@@ -84,18 +97,43 @@ module tb;
 		ram_valid = 1;
 		ram_data = '{default: 'h2};
 
+		assert(cache.stop_cache == 1);
+		
 		#10;
+		
+		foreach(cache.memory[0].block[i]) begin
+			assert(cache.memory[0].block[i].control_bits.valid == 0);
+			assert(cache.memory[0].block[i].control_bits.dirty == 0);
+			assert(cache.memory[0].block[i].control_bits.lsr_number == 0);
+			assert(cache.memory[0].block[i].tag == '0);
+		end
+
 
 		ram_valid = 0;
 		ram_data = '{default: '0};
 
-		read_en = 1;
-		address = 'h10000;
-		write_en = 0;
-		
+		$display("stop_cache: %d", cache.stop_cache);
+		$display("valid: %d", cache.memory[0].block[0].control_bits.valid);
+		$display("dirty: %d", cache.memory[0].block[0].control_bits.dirty);
+		$display("lsr_number: %d", cache.memory[0].block[0].control_bits.lsr_number);
+		$display("tag: %d", cache.memory[0].block[0].tag);
+
 		#10;
 
-		read_en = 0;
+		assert(cache.stop_cache == 0);
+		assert(cache.memory[0].block[0].control_bits.valid == 1);
+		assert(cache.memory[0].block[0].control_bits.dirty == 0);
+		assert(cache.memory[0].block[0].control_bits.lsr_number == '1);
+		assert(cache.memory[0].block[0].tag == '0);
+		
+
+		$display("stop_cache: %d", cache.stop_cache);
+		$display("valid: %d", cache.memory[0].block[0].control_bits.valid);
+		$display("dirty: %d", cache.memory[0].block[0].control_bits.dirty);
+		$display("lsr_number: %d", cache.memory[0].block[0].control_bits.lsr_number);
+		$display("tag: %d", cache.memory[0].block[0].tag);
+
+
 		assert(read_data == '0);
 			else $error("read_data not 0");
 		assert(prop_read_en == 1);
@@ -105,33 +143,118 @@ module tb;
 
 		#10;
 
-		ram_valid = 1;
+	endtask
+
+
+	task test_write();
+		// test assumes ASOC_BITS = 2
+		// test for writing to the same index in set
+		write_en = 1;
 		address = 'h10000;
-		ram_data = '{default: 'h3};
+		write_data = 'h10;
+
+		#10;
+		
+		address = 'h10000;
+		write_data = 'h20;
 
 		#10;
 
-		ram_valid = 0;
-		ram_data = '{default: '0};
+		// test for writing to two indexes
+		address = 'h20000;
+		write_data = 'h10;
+
+		#10;
+		
+		address = 'h10000;
+		write_data = 'h30;
+
+		#10;
 
 		address = 'h20000;
-		write_en = 1;
-		write_data = 45;
+		write_data = 'h20;
+		
+		#10;
+		
+		address = 'h10000;
+		write_data = 'h40;
+
+
+
+		// test for writing to three indexes
+		#10;
+
+		address = 'h30000;
+		write_data = 'h10;
 
 		#10;
 
 		address = 'h30000;
-		write_en = 1;
-		write_data = 45;
+		write_data = 'h20;
 
 		#10;
 
-		write_en =  1;
+		address = 'h20000;
+		write_data = 'h30;
+		
+		#10;
+		
+		address = 'h10000;
+		write_data = 'h50;
+
+		#10;
+
+		address = 'h30000;
+		write_data = 'h30;
+
+		// test for writing to 4 indexes
+		#10;
+
 		address = 'h40000;
-		write_data = 45;
+		write_data = 'h10;
 		
 		#10;
 
+		address = 'h30000;
+		write_data = 'h40;
+
+		#10;
+
+		address = 'h20000;
+		write_data = 'h40;
+		
+		#10;
+		
+		address = 'h10000;
+		write_data = 'h60;
+
+		#10;
+
+		address = 'h30000;
+		write_data = 'h50;
+
+		#10;
+
+	endtask
+
+	task test_read();
+
+	endtask
+
+
+	initial begin
+		init();
+		zero_inputs();
+		#10;
+
+		stop_cache_from_reading_0();
+		zero_inputs();
+		#10;
+
+		test_write();
+		zero_inputs();
+		#10;
+		
 		write_en = 0;
 		address = 'h10000;
 		read_en = 1;
