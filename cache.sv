@@ -79,7 +79,7 @@ module cache
 	assign cache_address = address_reg;
 
 	parameter INDEX_SIZE = 2**INDEX_BITS;
-	cache_set_t memory [INDEX_SIZE-1:0];
+	cache_set_t cache [INDEX_SIZE-1:0];
 
 	assign read_data = read_data_logic;
 	assign valid = valid_logic;
@@ -97,7 +97,7 @@ module cache
 			$error("ERROR: cache settings wrong");
         	end
         	$display("cache settings ok");
-		memory = '{default: '{block: '{default: '{control_bits: '{valid: 0, dirty: 0, lsr_number: '0}, tag: '0, data: '{default: '1}}}}}; // valid temporary
+		cache = '{default: '{block: '{default: '{control_bits: '{valid: 0, dirty: 0, lsr_number: '0}, tag: '0, data: '{default: '1}}}}}; // valid temporary
     	end
 
 
@@ -165,9 +165,9 @@ module cache
 	//TODO: write miss prop signals
 
 	always_comb begin: check_hit
-		if (read_en_reg || write_en_reg) begin
-			foreach (memory[cache_address.index].block[i]) begin
-				if (memory[cache_address.index].block[i].tag == cache_address.tag && memory[cache_address.index].block[i].control_bits.valid == 1) begin 
+		if (read_en_reg | write_en_reg) begin
+			foreach (cache[cache_address.index].block[i]) begin
+				if (cache[cache_address.index].block[i].tag == cache_address.tag && cache[cache_address.index].block[i].control_bits.valid == 1) begin 
 					index = i;
 					hit = 1;
 					miss_logic = 0;
@@ -187,27 +187,27 @@ module cache
 
 	always_ff @(posedge clk)  begin: lsr_number_update
 		if (hit) begin
-			foreach (memory[cache_address.index].block[i]) begin
-				if(memory[cache_address.index].block[i].control_bits.lsr_number > memory[cache_address.index].block[index].control_bits.lsr_number) begin
-					memory[cache_address.index].block[i].control_bits.lsr_number = memory[cache_address.index].block[i].control_bits.lsr_number - 1;
+			foreach (cache[cache_address.index].block[i]) begin
+				if(cache[cache_address.index].block[i].control_bits.lsr_number > cache[cache_address.index].block[index].control_bits.lsr_number) begin
+					cache[cache_address.index].block[i].control_bits.lsr_number = cache[cache_address.index].block[i].control_bits.lsr_number - 1;
 				end
 			end
-			memory[cache_address.index].block[index].control_bits.lsr_number = '1;
+			cache[cache_address.index].block[index].control_bits.lsr_number = '1;
 
-		end else if (replace_write || (replace_read & ram_valid_reg)) begin
-			foreach (memory[cache_address.index].block[i]) begin
-				if(memory[cache_address.index].block[i].control_bits.lsr_number > memory[cache_address.index].block[replace_index].control_bits.lsr_number) begin
-					memory[cache_address.index].block[i].control_bits.lsr_number = memory[cache_address.index].block[i].control_bits.lsr_number - 1;
+		end else if (replace_write | (replace_read & ram_valid_reg)) begin
+			foreach (cache[cache_address.index].block[i]) begin
+				if(cache[cache_address.index].block[i].control_bits.lsr_number > cache[cache_address.index].block[replace_index].control_bits.lsr_number) begin
+					cache[cache_address.index].block[i].control_bits.lsr_number = cache[cache_address.index].block[i].control_bits.lsr_number - 1;
 				end
 			end
-			memory[cache_address.index].block[replace_index].control_bits.lsr_number = '1;
+			cache[cache_address.index].block[replace_index].control_bits.lsr_number = '1;
 		end
 
 	end
 
 	always_comb begin: read_request
 		if (read_hit) begin
-			read_data_logic = memory[cache_address.index].block[index].data[cache_address.offset];
+			read_data_logic = cache[cache_address.index].block[index].data[cache_address.offset];
 			prop_read_en_logic = 0;
 			prop_address_logic = '0;
 		end else begin			
@@ -220,15 +220,15 @@ module cache
 
 	always_ff @(posedge clk) begin: write_request
 		if (write_hit) begin
-			memory[cache_address.index].block[index].data[cache_address.offset] = write_data_reg;
-			memory[cache_address.index].block[index].control_bits.dirty = 1;
+			cache[cache_address.index].block[index].data[cache_address.offset] = write_data_reg;
+			cache[cache_address.index].block[index].control_bits.dirty = 1;
 		end
 	end
 
 	always_comb begin: replace_index_calc_LSR
 		if (miss_logic) begin
-			foreach (memory[cache_address.index].block[i]) begin
-				if (~|memory[cache_address.index].block[i].control_bits.lsr_number) begin
+			foreach (cache[cache_address.index].block[i]) begin
+				if (~|cache[cache_address.index].block[i].control_bits.lsr_number) begin
 					replace_index = i;
 					replace = 1;
 					break;
@@ -248,18 +248,28 @@ module cache
 
 	end
 
+	always_comb begin: dirty_replace
+		if ((replace_write | replace_read) & cache[cache_address.index].block[replace_index].control_bits.dirty) begin
+			prop_write_en_logic = write_en_reg;
+			prop_write_data_logic = write_data_reg;
+		end else begin
+			prop_write_en_logic = 0;
+			prop_write_data_logic = '0;
+		end
+	end
+
 	always_ff @(posedge clk) begin: replace_block
 		if (replace_write) begin
-			memory[cache_address.index].block[replace_index].data[cache_address.offset] = write_data_reg;
-			memory[cache_address.index].block[replace_index].tag = cache_address.tag;
-			memory[cache_address.index].block[replace_index].control_bits.dirty = 1;
-			memory[cache_address.index].block[replace_index].control_bits.valid = 1;
+			cache[cache_address.index].block[replace_index].data[cache_address.offset] = write_data_reg;
+			cache[cache_address.index].block[replace_index].tag = cache_address.tag;
+			cache[cache_address.index].block[replace_index].control_bits.dirty = 1;
+			cache[cache_address.index].block[replace_index].control_bits.valid = 1;
 		end else if (replace_read) begin
 			if (ram_valid_reg) begin
-				memory[cache_address.index].block[replace_index].data = ram_data_reg;
-				memory[cache_address.index].block[replace_index].tag = cache_address.tag;
-				memory[cache_address.index].block[replace_index].control_bits.dirty = 0;
-				memory[cache_address.index].block[replace_index].control_bits.valid = 1;
+				cache[cache_address.index].block[replace_index].data = ram_data_reg;
+				cache[cache_address.index].block[replace_index].tag = cache_address.tag;
+				cache[cache_address.index].block[replace_index].control_bits.dirty = 0;
+				cache[cache_address.index].block[replace_index].control_bits.valid = 1;
 			end
 		end
 	end
