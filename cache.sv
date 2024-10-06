@@ -51,11 +51,11 @@ module cache
     	typedef struct {
 		cache_entry_control_bits_t control_bits;
         	logic [TAG_BITS-1:0] tag;
-       		logic [DATA_BITS-1:0] data [BLOCK_SIZE-1:0];     // might have to be packed to match input from RAM
+       		logic [DATA_BITS-1:0] data [0:BLOCK_SIZE-1];     // might have to be packed to match input from RAM
     	} cache_entry_t;
 
 	typedef struct {
-		cache_entry_t block [ASOC_SIZE-1:0];
+		cache_entry_t block [0:ASOC_SIZE-1];
 	} cache_set_t;
 
 	logic [DATA_BITS-1:0] read_data_logic;
@@ -194,15 +194,15 @@ module cache
 			end
 			memory[cache_address.index].block[index].control_bits.lsr_number = '1;
 
-		end else if (replace_write) begin
+		end else if (replace_write || (replace_read & ram_valid_reg)) begin
 			foreach (memory[cache_address.index].block[i]) begin
 				if(memory[cache_address.index].block[i].control_bits.lsr_number > memory[cache_address.index].block[replace_index].control_bits.lsr_number) begin
 					memory[cache_address.index].block[i].control_bits.lsr_number = memory[cache_address.index].block[i].control_bits.lsr_number - 1;
 				end
 			end
 			memory[cache_address.index].block[replace_index].control_bits.lsr_number = '1;
-
 		end
+
 	end
 
 	always_comb begin: read_request
@@ -255,7 +255,7 @@ module cache
 			memory[cache_address.index].block[replace_index].control_bits.dirty = 1;
 			memory[cache_address.index].block[replace_index].control_bits.valid = 1;
 		end else if (replace_read) begin
-			if (ram_valid) begin
+			if (ram_valid_reg) begin
 				memory[cache_address.index].block[replace_index].data = ram_data_reg;
 				memory[cache_address.index].block[replace_index].tag = cache_address.tag;
 				memory[cache_address.index].block[replace_index].control_bits.dirty = 0;
