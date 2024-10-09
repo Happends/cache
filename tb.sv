@@ -23,6 +23,8 @@ module tb;
 	logic [DATA_BITS-1:0] prop_write_data;
 	logic prop_write_en;
 	
+	logic found;
+
 	cache #(.RAM_ADDRESS_BITS(RAM_ADDRESS_BITS),
 		.CACHE_ADDRESS_BITS(CACHE_ADDRESS_BITS),
 		.DATA_BITS(DATA_BITS),
@@ -101,38 +103,29 @@ module tb;
 		
 		#10;
 		
-		foreach(cache.memory[0].block[i]) begin
-			assert(cache.memory[0].block[i].control_bits.valid == 0);
-			assert(cache.memory[0].block[i].control_bits.dirty == 0);
-			assert(cache.memory[0].block[i].control_bits.lsr_number == 0);
-			assert(cache.memory[0].block[i].tag == '0);
+		foreach(cache.cache[0].block[i]) begin
+			assert(cache.cache[0].block[i].control_bits.valid == 0);
+			assert(cache.cache[0].block[i].control_bits.dirty == 0);
+			assert(cache.cache[0].block[i].control_bits.lsr_number == 0);
+			assert(cache.cache[0].block[i].tag == '0);
 		end
-
 
 		ram_valid = 0;
 		ram_data = '{default: '0};
 
-		$display("stop_cache: %d", cache.stop_cache);
-		$display("valid: %d", cache.memory[0].block[0].control_bits.valid);
-		$display("dirty: %d", cache.memory[0].block[0].control_bits.dirty);
-		$display("lsr_number: %d", cache.memory[0].block[0].control_bits.lsr_number);
-		$display("tag: %d", cache.memory[0].block[0].tag);
-
 		#10;
 
 		assert(cache.stop_cache == 0);
-		assert(cache.memory[0].block[0].control_bits.valid == 1);
-		assert(cache.memory[0].block[0].control_bits.dirty == 0);
-		assert(cache.memory[0].block[0].control_bits.lsr_number == '1);
-		assert(cache.memory[0].block[0].tag == '0);
+		assert(cache.cache[0].block[0].control_bits.valid == 1);
+		assert(cache.cache[0].block[0].control_bits.dirty == 0);
+		assert(cache.cache[0].block[0].control_bits.lsr_number == '1);
+		assert(cache.cache[0].block[0].tag == '0);
 		
-
-		$display("stop_cache: %d", cache.stop_cache);
-		$display("valid: %d", cache.memory[0].block[0].control_bits.valid);
-		$display("dirty: %d", cache.memory[0].block[0].control_bits.dirty);
-		$display("lsr_number: %d", cache.memory[0].block[0].control_bits.lsr_number);
-		$display("tag: %d", cache.memory[0].block[0].tag);
-
+		// $display("stop_cache: %d", cache.stop_cache);
+		// $display("valid: %d", cache.cache[0].block[0].control_bits.valid);
+		// $display("dirty: %d", cache.cache[0].block[0].control_bits.dirty);
+		// $display("lsr_number: %d", cache.cache[0].block[0].control_bits.lsr_number);
+		// $display("tag: %d", cache.cache[0].block[0].tag);
 
 		assert(read_data == '0);
 			else $error("read_data not 0");
@@ -144,6 +137,69 @@ module tb;
 		#10;
 
 	endtask
+	task check_cache_controls(input logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag1, logic [DATA_BITS-1:0] data1, logic test1, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag2, logic [DATA_BITS-1:0] data2, logic test2, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag3, logic [DATA_BITS-1:0] data3, logic test3, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag4, logic [DATA_BITS-1:0] data4, logic test4);
+
+		found = 0;
+		if (test1 == 1) begin
+			foreach(cache.cache[0].block[i]) begin
+				if (cache.cache[0].block[i].tag == tag1) begin
+					assert(found == 0);
+					found = 1;
+					assert(cache.cache[0].block[i].control_bits.valid == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b11);
+					assert(cache.cache[0].block[i].data[0] == data1);
+				end
+			end
+			assert(found);
+		end
+
+		if (test2 == 1) begin
+			found = 0;
+			foreach(cache.cache[0].block[i]) begin
+				if (cache.cache[0].block[i].tag == tag2) begin
+					assert(found == 0);
+					found = 1;
+					assert(cache.cache[0].block[i].control_bits.valid == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b10);
+					assert(cache.cache[0].block[i].data[0] == data2);
+				end
+			end
+			assert(found);
+		end
+
+		if (test3 == 1) begin
+			found = 0;
+			foreach(cache.cache[0].block[i]) begin
+				if (cache.cache[0].block[i].tag == tag3) begin
+					assert(found == 0);
+					found = 1;
+					assert(cache.cache[0].block[i].control_bits.valid == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b01);
+					assert(cache.cache[0].block[i].data[0] == data3);
+				end
+			end
+			assert(found);
+		end
+
+		if (test4 == 1) begin
+			found = 0;
+			foreach(cache.cache[0].block[i]) begin
+				if (cache.cache[0].block[i].tag == tag4) begin
+					assert(found == 0);
+					found = 1;
+					assert(cache.cache[0].block[i].control_bits.valid == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b00);
+					assert(cache.cache[0].block[i].data[0] == data4);
+				end
+			end
+			assert(found);
+		end
+
+	endtask	
 
 
 	task test_write();
@@ -159,50 +215,99 @@ module tb;
 		write_data = 'h20;
 
 		#10;
+		
+		check_cache_controls(	'h400, 'h10, 1,  
+					'0, '0, 0, 
+					'0, '0, 0, 
+					'0, '0, 0);	
+
 
 		// test for writing to two indexes
 		address = 'h20000;
 		write_data = 'h10;
 
 		#10;
+
+		check_cache_controls(	'h400, 'h20, 1, 
+					'0, '0, 0, 
+					'0, '0, 0, 
+					'0, '0, 0);	
+
 		
 		address = 'h10000;
 		write_data = 'h30;
 
+
 		#10;
+		
+		check_cache_controls(	'h800, 'h10, 1,
+					'h400, 'h20, 1, 
+					'0, '0, 0, 
+					'0, '0, 0);	
+
 
 		address = 'h20000;
 		write_data = 'h20;
-		
+
 		#10;
+
+		check_cache_controls(	'h400, 'h30, 1,
+					'h800, 'h10, 1, 
+					'0, '0, 0, 
+					'0, '0, 0);	
+		
 		
 		address = 'h10000;
 		write_data = 'h40;
 
+		#10;
+
+		check_cache_controls(	'h800, 'h20, 1,
+					'h400, 'h30, 1, 
+					'0, '0, 0, 
+					'0, '0, 0);	
 
 
 		// test for writing to three indexes
-		#10;
 
 		address = 'h30000;
 		write_data = 'h10;
 
 		#10;
 
+		check_cache_controls( 	'h400, 'h40, 1,
+					'h800, 'h20, 1,
+					'0, '0, 0,
+					'0, '0, 0);
+
 		address = 'h30000;
 		write_data = 'h20;
 
 		#10;
 
+		check_cache_controls(	'hc00, 'h10, 1,
+					'h400, 'h40, 1, 
+					'h800, 'h20, 1, 
+					'0, '0, 0);
 		address = 'h20000;
 		write_data = 'h30;
 		
 		#10;
 		
+		check_cache_controls(	'hc00, 'h20, 1,
+					'h400, 'h40, 1, 
+					'h800, 'h20, 1, 
+					'0, '0, 0);
+
 		address = 'h10000;
 		write_data = 'h50;
 
 		#10;
+
+		check_cache_controls(	'h800, 'h30,  1,
+					'hc00, 'h20, 1,
+					'h400, 'h40,  1,
+					'0, '0, 0);
 
 		address = 'h30000;
 		write_data = 'h30;
@@ -210,15 +315,30 @@ module tb;
 		// test for writing to 4 indexes
 		#10;
 
+		check_cache_controls(	'h400, 'h50,  1, 
+					'h800, 'h30,  1, 
+					'hc00, 'h20, 1,
+					'0, '0, 0);
+
 		address = 'h40000;
 		write_data = 'h10;
 		
 		#10;
 
+		check_cache_controls(	'hc00, 'h30, 1,
+					'h400, 'h50, 1, 
+					'h800, 'h30, 1, 
+					'0, '0, 0);
+
 		address = 'h30000;
 		write_data = 'h40;
 
 		#10;
+
+		check_cache_controls(	'h1000, 'h10,  1,
+					'hc00, 'h30,  1,
+					'h400, 'h50,  1, 
+					'h800, 'h30, 1); 
 
 		address = 'h20000;
 		write_data = 'h40;
@@ -254,90 +374,6 @@ module tb;
 		test_write();
 		zero_inputs();
 		#10;
-		
-		write_en = 0;
-		address = 'h10000;
-		read_en = 1;
-		
-		#10;
-
-		address = 'h20000;
-		read_en = 1;
-		
-		#10;
-
-		address ='h30000;
-		read_en = 1;
-		
-		#10;
-
-		address = 'h40000;
-		read_en = 1;
-		
-		#10;
-
-		address = 'h30000;
-		read_en = 1;
-		
-		#10;
-
-		address ='h20000;
-		read_en = 1;
-		
-		#10;
-
-		address = 'h30000;
-		read_en = 1;
-		
-		#10;
-
-		address = 10;
-		write_en = 1;
-		write_data = 'h55;
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		
-
-		#10;
-
-		read_en = 0;
-		address = 'h5001;
-		write_data = 'hFAFA;
-		write_en = 1;
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 10;
-
-		#10
-
-		read_en = 1;
-		address = 'h5001;
-
-		#10
-
-		read_en = 1;
-		address = 10;
-
-		#10;
-
-		read_en = 1;
-		address = 11;
-
-		#10;
-
-		read_en = 1;
-		address = 20;
-
-		#10;
-
-		read_en = 0;
-		#50;
 
 		$finish;
 	end
