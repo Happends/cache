@@ -137,7 +137,16 @@ module tb;
 		#10;
 
 	endtask
-	task check_cache_controls(input logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag1, logic [DATA_BITS-1:0] data1, logic test1, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag2, logic [DATA_BITS-1:0] data2, logic test2, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag3, logic [DATA_BITS-1:0] data3, logic test3, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag4, logic [DATA_BITS-1:0] data4, logic test4);
+
+
+	task check_readout( logic [DATA_BITS-1:0] data);
+		assert(valid == 1);
+		assert(read_data == data);
+	endtask
+
+
+
+	task check_cache_controls(input logic write, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag1, logic [DATA_BITS-1:0] data1, logic test1, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag2, logic [DATA_BITS-1:0] data2, logic test2, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag3, logic [DATA_BITS-1:0] data3, logic test3, logic [RAM_ADDRESS_BITS-CACHE_ADDRESS_BITS+ASOC_BITS-1:0] tag4, logic [DATA_BITS-1:0] data4, logic test4);
 
 		found = 0;
 		if (test1 == 1) begin
@@ -146,7 +155,7 @@ module tb;
 					assert(found == 0);
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
-					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == write);
 					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b11);
 					assert(cache.cache[0].block[i].data[0] == data1);
 				end
@@ -161,7 +170,7 @@ module tb;
 					assert(found == 0);
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
-					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == write);
 					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b10);
 					assert(cache.cache[0].block[i].data[0] == data2);
 				end
@@ -176,7 +185,7 @@ module tb;
 					assert(found == 0);
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
-					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == write);
 					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b01);
 					assert(cache.cache[0].block[i].data[0] == data3);
 				end
@@ -191,7 +200,7 @@ module tb;
 					assert(found == 0);
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
-					assert(cache.cache[0].block[i].control_bits.dirty == 1);
+					assert(cache.cache[0].block[i].control_bits.dirty == write);
 					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b00);
 					assert(cache.cache[0].block[i].data[0] == data4);
 				end
@@ -216,7 +225,8 @@ module tb;
 
 		#10;
 		
-		check_cache_controls(	'h400, 'h10, 1,  
+		check_cache_controls(	1,	
+					'h400, 'h10, 1,  
 					'0, '0, 0, 
 					'0, '0, 0, 
 					'0, '0, 0);	
@@ -228,7 +238,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'h400, 'h20, 1, 
+		check_cache_controls(	1,
+					'h400, 'h20, 1, 
 					'0, '0, 0, 
 					'0, '0, 0, 
 					'0, '0, 0);	
@@ -240,7 +251,8 @@ module tb;
 
 		#10;
 		
-		check_cache_controls(	'h800, 'h10, 1,
+		check_cache_controls(	1,
+					'h800, 'h10, 1,
 					'h400, 'h20, 1, 
 					'0, '0, 0, 
 					'0, '0, 0);	
@@ -251,7 +263,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'h400, 'h30, 1,
+		check_cache_controls(	1,
+					'h400, 'h30, 1,
 					'h800, 'h10, 1, 
 					'0, '0, 0, 
 					'0, '0, 0);	
@@ -262,7 +275,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'h800, 'h20, 1,
+		check_cache_controls(	1,
+					'h800, 'h20, 1,
 					'h400, 'h30, 1, 
 					'0, '0, 0, 
 					'0, '0, 0);	
@@ -275,7 +289,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls( 	'h400, 'h40, 1,
+		check_cache_controls( 	1,
+					'h400, 'h40, 1,
 					'h800, 'h20, 1,
 					'0, '0, 0,
 					'0, '0, 0);
@@ -285,7 +300,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'hc00, 'h10, 1,
+		check_cache_controls(	1,
+					'hc00, 'h10, 1,
 					'h400, 'h40, 1, 
 					'h800, 'h20, 1, 
 					'0, '0, 0);
@@ -294,7 +310,8 @@ module tb;
 		
 		#10;
 		
-		check_cache_controls(	'hc00, 'h20, 1,
+		check_cache_controls(	1,
+					'hc00, 'h20, 1,
 					'h400, 'h40, 1, 
 					'h800, 'h20, 1, 
 					'0, '0, 0);
@@ -304,7 +321,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'h800, 'h30,  1,
+		check_cache_controls(	1,
+					'h800, 'h30,  1,
 					'hc00, 'h20, 1,
 					'h400, 'h40,  1,
 					'0, '0, 0);
@@ -315,7 +333,8 @@ module tb;
 		// test for writing to 4 indexes
 		#10;
 
-		check_cache_controls(	'h400, 'h50,  1, 
+		check_cache_controls(	1,
+					'h400, 'h50,  1, 
 					'h800, 'h30,  1, 
 					'hc00, 'h20, 1,
 					'0, '0, 0);
@@ -325,7 +344,8 @@ module tb;
 		
 		#10;
 
-		check_cache_controls(	'hc00, 'h30, 1,
+		check_cache_controls(	1,
+					'hc00, 'h30, 1,
 					'h400, 'h50, 1, 
 					'h800, 'h30, 1, 
 					'0, '0, 0);
@@ -335,7 +355,8 @@ module tb;
 
 		#10;
 
-		check_cache_controls(	'h1000, 'h10,  1,
+		check_cache_controls(	1,
+					'h1000, 'h10,  1,
 					'hc00, 'h30,  1,
 					'h400, 'h50,  1, 
 					'h800, 'h30, 1); 
@@ -344,20 +365,301 @@ module tb;
 		write_data = 'h40;
 		
 		#10;
-		
+	
+		check_cache_controls(	1,
+					'hc00, 'h40,  1,
+					'h1000, 'h10,  1,
+					'h400, 'h50,  1, 
+					'h800, 'h30, 1); 
+
+	
 		address = 'h10000;
 		write_data = 'h60;
 
 		#10;
+	
+		check_cache_controls(	1,
+					'h800, 'h40, 1,
+					'hc00, 'h40,  1,
+					'h1000, 'h10,  1,
+					'h400, 'h50,  1); 
+
 
 		address = 'h30000;
 		write_data = 'h50;
 
 		#10;
+	
+		check_cache_controls(	1,
+					'h400, 'h60,  1,
+					'h800, 'h40, 1,
+					'hc00, 'h40,  1,
+					'h1000, 'h10,  1); 
+
+		#10;
+	
+		check_cache_controls(	1,
+					'hc00, 'h50,  1,
+					'h400, 'h60,  1,
+					'h800, 'h40, 1,
+					'h1000, 'h10,  1); 
+
+
 
 	endtask
 
+	logic [RAM_ADDRESS_BITS-1:0] addresses [20-1:0];
+	logic [DATA_BITS-1:0] datas [20-1:0];
+
+	logic [RAM_ADDRESS_BITS-1:0] check_addresses [19-1:0];
+	logic [DATA_BITS-1:0] check_datas [19-1:0];
+
 	task test_read();
+		
+		write_en = 1;
+		address = 'hffffffff; 
+		write_data = 'h10;
+
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'hffffffff;
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'haaaaaaaa; 
+		write_data = 'h20;
+
+		check_readout( 'h10);
+
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'haaaaaaaa; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h12345633; 
+		write_data = 'h30;
+
+
+		check_readout( 'h20);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h12345633; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h87657485; 
+		write_data = 'h40;
+
+
+		check_readout( 'h30);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h87657485; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h98765432; 
+		write_data = 'h50;
+
+
+		check_readout( 'h40);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h98765432; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h90128301; 
+		write_data = 'h60;
+
+
+		check_readout( 'h50);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h90128301; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h094509; 
+		write_data = 'h70;
+
+
+		check_readout( 'h60);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h094509; 
+
+		#10;
+
+		write_en = 1;
+		read_en = 0;
+		address = 'h1234959; 
+		write_data = 'h80;
+
+
+		check_readout( 'h70);
+
+		#10;
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h1234959; 
+
+		#10;
+
+		read_en = 0;
+
+		check_readout( 'h80);
+
+		#10;
+		
+
+
+		// many writes into reads
+		
+		addresses = {	'h12345678, 'h12345678, 
+				'h12345679,
+				'h12345680,
+				'h12345681,
+				'h12345682,
+				'h12345683,
+				'h12345684,
+				'h12345685,
+				'h12345686,
+				'h12345687,
+				'h12345688,
+				'h12345689,
+				'h1234568a,
+				'h1234568b,
+				'h1234568c,
+				'h1234568d,
+				'h1234568e,
+				'h1234568f,
+				'h12345690};
+		datas = {	'hac, 'hffffffff,
+				'had,
+				'hae,
+				'haf,
+				'hb0,
+				'hffff0000,
+				'h0f0f0f0f,
+				'hf0f0f0f0,
+				'hacacacac,
+				'h54545454,
+				'h88446722,
+				'hf0000000,
+				'h80000000,
+				'h10000000,
+				'h11111111,
+				'h00000000,
+				'h33992188,
+				'h88112233,
+				'hdc12398c};
+		check_addresses = {	'h12345678, 
+					'h12345679,
+					'h12345680,
+					'h12345681,
+					'h12345682,
+					'h12345683,
+					'h12345684,
+					'h12345685,
+					'h12345686,
+					'h12345687,
+					'h12345688,
+					'h12345689,
+					'h1234568a,
+					'h1234568b,
+					'h1234568c,
+					'h1234568d,
+					'h1234568e,
+					'h1234568f,
+					'h12345690};
+		check_datas = {	'hffffffff,
+				'had,
+				'hae,
+				'haf,
+				'hb0,
+				'hffff0000,
+				'h0f0f0f0f,
+				'hf0f0f0f0,
+				'hacacacac,
+				'h54545454,
+				'h88446722,
+				'hf0000000,
+				'h80000000,
+				'h10000000,
+				'h11111111,
+				'h00000000,
+				'h33992188,
+				'h88112233,
+				'hdc12398c};
+
+		write_en = 1;
+		foreach (addresses[i]) begin
+			address = addresses[i];
+			write_data = datas[i];
+			
+			#10;
+		end
+
+		write_en = 0;
+		read_en = 1;
+
+		foreach (check_addresses[i]) begin
+			address = check_addresses[i];
+
+			#10;
+
+			check_readout( check_datas[i]);
+		end
+
+		// check replacing one entry
+
+		write_en = 0;
+		read_en = 1;
+		address = 'h12345678;
+
+
+
+
+
+
+
+
 
 	endtask
 
@@ -372,6 +674,10 @@ module tb;
 		#10;
 
 		test_write();
+		zero_inputs();
+		#10;
+
+		test_read();
 		zero_inputs();
 		#10;
 
