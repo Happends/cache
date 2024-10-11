@@ -140,6 +140,7 @@ module tb;
 
 
 	task check_readout( logic [DATA_BITS-1:0] data);
+		$display("readout: %x, read_data: %x", data, read_data);
 		assert(valid == 1);
 		assert(read_data == data);
 	endtask
@@ -415,139 +416,57 @@ module tb;
 	logic [DATA_BITS-1:0] check_datas [19-1:0];
 
 	task test_read();
-		
-		write_en = 1;
-		address = 'hffffffff; 
-		write_data = 'h10;
+
+		addresses = {	'hffffffff,
+				'h00000000,
+				'haaaaaaaa,
+				'h12345633,
+				'h87657485,
+				'h98765432,
+				'h90128301,
+				'h09450900,
+ 				'h12349599,
+				'h99999999,
+				'hf8f8f8f8,
+				'h8f8f8f8f,
+				'h11111111,
+				'h79791233,
+				'h00000001,
+				'h10000001,
+				'h10101111,
+				'h10ffffff,
+				'h88541003,
+				'h100800ee};
+
+		for (int i = 0; i < $size(addresses)+1; i++) begin
 
 
-		#10;
+			if ( i != 0) begin
+				$display("write_address: %x, prior_check_address: %x", addresses[i], addresses[i-1]);
+				check_readout((i-1)*'h10);
+			end
 
-		write_en = 0;
-		read_en = 1;
-		address = 'hffffffff;
+		       	if (i != $size(addresses)) begin
 
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'haaaaaaaa; 
-		write_data = 'h20;
-
-		check_readout( 'h10);
+				write_en = 1;
+				read_en = 0;
+				address = addresses[i];
+				write_data = i * 'h10;
 
 
-		#10;
+				#10;
 
-		write_en = 0;
-		read_en = 1;
-		address = 'haaaaaaaa; 
+				read_en = 1;
+				write_en = 0;
 
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h12345633; 
-		write_data = 'h30;
+				address = addresses[i];
 
 
-		check_readout( 'h20);
+				#10;
+			end
 
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h12345633; 
-
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h87657485; 
-		write_data = 'h40;
-
-
-		check_readout( 'h30);
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h87657485; 
-
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h98765432; 
-		write_data = 'h50;
-
-
-		check_readout( 'h40);
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h98765432; 
-
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h90128301; 
-		write_data = 'h60;
-
-
-		check_readout( 'h50);
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h90128301; 
-
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h094509; 
-		write_data = 'h70;
-
-
-		check_readout( 'h60);
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h094509; 
-
-		#10;
-
-		write_en = 1;
-		read_en = 0;
-		address = 'h1234959; 
-		write_data = 'h80;
-
-
-		check_readout( 'h70);
-
-		#10;
-
-		write_en = 0;
-		read_en = 1;
-		address = 'h1234959; 
-
-		#10;
-
-		read_en = 0;
-
-		check_readout( 'h80);
-
-		#10;
-		
-
+		end
+	
 
 		// many writes into reads
 		
@@ -628,6 +547,7 @@ module tb;
 				'h88112233,
 				'hdc12398c};
 
+		read_en = 0;
 		write_en = 1;
 		foreach (addresses[i]) begin
 			address = addresses[i];
@@ -638,7 +558,6 @@ module tb;
 
 		write_en = 0;
 		read_en = 1;
-
 		foreach (check_addresses[i]) begin
 			address = check_addresses[i];
 
@@ -652,14 +571,6 @@ module tb;
 		write_en = 0;
 		read_en = 1;
 		address = 'h12345678;
-
-
-
-
-
-
-
-
 
 	endtask
 
