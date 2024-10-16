@@ -63,7 +63,7 @@ module cache
 	logic miss_logic;
        	logic [RAM_ADDRESS_BITS-1:0] prop_address_logic;
 	logic prop_read_en_logic;
-        logic [DATA_BITS-1:0] prop_write_data_logic;
+        logic [DATA_BITS-1:0] prop_write_data_logic [0:BLOCK_SIZE-1];
         logic prop_write_en_logic;
 
 
@@ -151,15 +151,17 @@ module cache
 
 	logic stop_cache;
 
+	logic prop_dirty_wait; 
+
 	assign read_hit = hit & read_en_reg;
 	assign write_hit = hit & write_en_reg;
 
 	assign replace_read = replace & read_en_reg;
 	assign replace_write = replace & write_en_reg;
 
-	assign valid_logic = hit;
+	assign valid_logic = hit | ram_valid_reg;
 
-	assign stop_cache = replace_read & ~ram_valid_reg;
+	assign stop_cache = (replace_read & ~ram_valid_reg) | prop_dirty_wait; 
 
 	//TODO: handle dirty bit
 	//TODO: write miss prop signals
@@ -218,13 +220,6 @@ module cache
 	end
 
 
-	always_ff @(posedge clk) begin: write_request
-		if (write_hit) begin
-			cache[cache_address.index].block[index].data[cache_address.offset] = write_data_reg;
-			cache[cache_address.index].block[index].control_bits.dirty = 1;
-		end
-	end
-
 	always_comb begin: replace_index_calc_LSR
 		if (miss_logic) begin
 			foreach (cache[cache_address.index].block[i]) begin
@@ -239,27 +234,39 @@ module cache
 			end
 			
 		end else begin
-
 			replace_index = 0;
 			replace = 0;
-
 		end
-
-
 	end
 
-	always_comb begin: dirty_replace
-		if ((replace_write | replace_read) & cache[cache_address.index].block[replace_index].control_bits.dirty) begin
-			prop_write_en_logic = write_en_reg;
-			prop_write_data_logic = write_data_reg;
+
+	always_comb  begin: dirty_replace
+		if (replace & cache[cache_address.index].block[replace_index].control_bits.dirty) begin
+			prop_write_en_logic = 1;
+			prop_write_data_logic = cache[cache_address.index].block[replace_index].data;
 		end else begin
 			prop_write_en_logic = 0;
-			prop_write_data_logic = '0;
+			prop_write_data_logic = '{default: '0};
 		end
 	end
 
+
+	always_ff @(posedge clk) begin: dirty_replace_wait
+		if (~ram_valid & prop_write_en_logic) begin
+			prop_dirty_wait = 1;
+		end else begin
+			prop_dirty_wait = 0;
+		end
+	end
+
+
 	always_ff @(posedge clk) begin: replace_block
-		if (replace_write) begin
+		if (write_hit) begin
+			cache[cache_address.index].block[index].data[cache_address.offset] = write_data_reg;
+			cache[cache_address.index].block[index].tag = cache_address.tag;
+			cache[cache_address.index].block[index].control_bits.dirty = 1;
+			cache[cache_address.index].block[index].control_bits.valid = 1;
+		end else if (replace_write) begin
 			cache[cache_address.index].block[replace_index].data[cache_address.offset] = write_data_reg;
 			cache[cache_address.index].block[replace_index].tag = cache_address.tag;
 			cache[cache_address.index].block[replace_index].control_bits.dirty = 1;
@@ -273,8 +280,6 @@ module cache
 			end
 		end
 	end
-
-
 
 
 

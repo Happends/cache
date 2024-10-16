@@ -25,6 +25,7 @@ module tb;
 	
 	logic found;
 
+	
 	cache #(.RAM_ADDRESS_BITS(RAM_ADDRESS_BITS),
 		.CACHE_ADDRESS_BITS(CACHE_ADDRESS_BITS),
 		.DATA_BITS(DATA_BITS),
@@ -90,7 +91,7 @@ module tb;
 
 		assert(cache.stop_cache == 1);
 
-		#10;
+		#30;
 
 		address = 'h10000;
 		write_en = 1;
@@ -114,18 +115,19 @@ module tb;
 		ram_data = '{default: '0};
 
 		#10;
+	
+		$display("stop_cache: %d", cache.stop_cache);
+		$display("valid: %d", cache.cache[0].block[0].control_bits.valid);
+		$display("dirty: %d", cache.cache[0].block[0].control_bits.dirty);
+		$display("lsr_number: %d", cache.cache[0].block[0].control_bits.lsr_number);
+		$display("tag: %d", cache.cache[0].block[0].tag);
+
 
 		assert(cache.stop_cache == 0);
 		assert(cache.cache[0].block[0].control_bits.valid == 1);
 		assert(cache.cache[0].block[0].control_bits.dirty == 0);
 		assert(cache.cache[0].block[0].control_bits.lsr_number == '1);
 		assert(cache.cache[0].block[0].tag == '0);
-		
-		// $display("stop_cache: %d", cache.stop_cache);
-		// $display("valid: %d", cache.cache[0].block[0].control_bits.valid);
-		// $display("dirty: %d", cache.cache[0].block[0].control_bits.dirty);
-		// $display("lsr_number: %d", cache.cache[0].block[0].control_bits.lsr_number);
-		// $display("tag: %d", cache.cache[0].block[0].tag);
 
 		assert(read_data == '0);
 			else $error("read_data not 0");
@@ -158,7 +160,7 @@ module tb;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
 					assert(cache.cache[0].block[i].control_bits.dirty == write);
 					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b11);
-					assert(cache.cache[0].block[i].data[0] == data1);
+					assert(cache.cache[0].block[i].data[0] == data1) else $error("block_data: %d, should be: %d\n", cache.cache[0].block[i].data[0], data1);
 				end
 			end
 			assert(found);
@@ -453,8 +455,19 @@ module tb;
 				address = addresses[i];
 				write_data = i * 'h10;
 
+				#20;
+				$display("i: %d, address: %x, address[i]: %x", i, address, addresses[i]);
+				if (cache.cache[cache.cache_address.index].block[cache.cache_address.offset].control_bits.dirty == 1) begin
 
-				#10;
+
+					ram_valid = 1;
+
+					#10;
+
+					ram_valid = 0;
+				end
+
+
 
 				read_en = 1;
 				write_en = 0;
@@ -554,6 +567,17 @@ module tb;
 			write_data = datas[i];
 			
 			#10;
+
+			$display("i: %d, address: %x, address[i]: %x", i, address, addresses[i]);
+			if (cache.cache[cache.cache_address.index].block[cache.cache_address.offset].control_bits.dirty == 1) begin
+
+
+				ram_valid = 1;
+
+				#10;
+
+				ram_valid = 0;
+			end
 		end
 
 		write_en = 0;
@@ -591,6 +615,13 @@ module tb;
 		test_read();
 		zero_inputs();
 		#10;
+
+		read_en = 1;
+		write_en = 1;
+		address = '0;
+		write_data = 'hf;
+
+		#30;
 
 		$finish;
 	end

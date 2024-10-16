@@ -1,66 +1,41 @@
 [*]
 [*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Sun Oct  6 19:34:56 2024
+[*] Wed Oct 16 21:31:59 2024
 [*]
 [dumpfile] "/home/alexhelmersson/Documents/programming/processors/cache/waves.vcd"
-[dumpfile_mtime] "Sun Oct  6 19:34:22 2024"
-[dumpfile_size] 2354
+[dumpfile_mtime] "Wed Oct 16 21:31:44 2024"
+[dumpfile_size] 2874
 [savefile] "/home/alexhelmersson/Documents/programming/processors/cache/configs/gtkwave/gtkwave_signals.gtkw"
 [timestart] 0
 [size] 1593 600
 [pos] -1 -1
-*-4.696323 45 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.696323 33 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.cache.
-[treeopen] tb.cache.memory[0].
-[treeopen] tb.cache.memory[0].block[0].
-[treeopen] tb.cache.memory[0].block[1].
-[treeopen] tb.cache.memory[0].block[2].
-[treeopen] tb.cache.memory[0].block[3].
 [sst_width] 273
 [signals_width] 246
 [sst_expanded] 1
 [sst_vpaned_height] 157
 @28
 tb.cache.clk
-tb.cache.stop_cache
 @22
 tb.cache.address_reg[31:0]
 @28
-tb.cache.read_en_reg
-tb.cache.write_en_reg
+tb.cache.cache[0].block[1].control_bits.dirty
+tb.cache.stop_cache
+tb.cache.prop_dirty_wait
 @22
-tb.cache.write_data_reg[31:0]
+tb.cache.cache[0].block[1].data[0][31:0]
 @28
-tb.cache.hit
-tb.cache.miss
-tb.cache.valid
-@22
-tb.cache.read_data[31:0]
-@28
-tb.cache.prop_read_en
-@22
-tb.cache.prop_address[31:0]
-@28
-tb.cache.ram_valid_reg
-@22
-tb.cache.ram_data_reg[0][31:0]
-tb.cache.ram_data_reg[1][31:0]
-tb.cache.ram_data_reg[2][31:0]
-tb.cache.ram_data_reg[3][31:0]
-@c00028
-tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
-@28
-(0)tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
-(1)tb.cache.memory[0].block[3].control_bits.lsr_number[1:0]
-@1401200
--group_end
-@28
-tb.cache.memory[0].block[2].control_bits.lsr_number[1:0]
-tb.cache.memory[0].block[1].control_bits.lsr_number[1:0]
-tb.cache.memory[0].block[0].control_bits.lsr_number[1:0]
-tb.cache.memory[0].block[0].control_bits.dirty
+tb.cache.ram_valid
+tb.cache.read_en
+tb.cache.write_en
+tb.cache.prop_dirty_wait
+tb.cache.replace
+tb.cache.replace_read
 @29
-tb.cache.memory[0].block[0].control_bits.valid
+tb.cache.prop_dirty_wait
+@28
+tb.cache.replace_write
 [pattern_trace] 1
 [pattern_trace] 0
