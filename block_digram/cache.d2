@@ -1,0 +1,118 @@
+# input signals
+clk: {
+  shape: text
+}
+
+reset_n: {
+  shape: text
+}
+
+address: {
+  shape: text
+}
+
+read_en: {
+  shape: text
+}
+
+write_data: {
+  shape: text
+}
+
+write_en: {
+  shape: text
+}
+
+ram_valid: {
+  shape: text
+}
+
+ram_data: {
+  shape: text
+}
+
+# output signals
+read_data: {
+  shape: text
+}
+
+valid: {
+  shape: text
+}
+
+miss: {
+  shape: text
+}
+
+prop_address: {
+  shape: text
+}
+
+prop_read_en: {
+  shape: text
+}
+
+prop_write_data: {
+  shape: text
+}
+
+prop_write_en: {
+  shape: text
+}
+
+# components
+hit logic
+lru update
+replace index
+propagate dirty
+stabilize input
+replace block
+stop cache
+
+# connections
+
+# input
+
+# # TODO: regs from clk and reset_n
+
+clk -> stabilize input
+reset_n -> stabilize input
+address -> stabilize input
+read_en -> stabilize input
+write_en -> stabilize input
+write_data -> stabilize input
+ram_valid -> stabilize input
+ram_data -> stabilize input
+stop cache -> stabilize input
+
+stabilize input -> hit logic: address_reg
+stabilize input -> hit logic: read_en_reg
+stabilize input -> hit logic: write_en_reg
+stabilize input -> stop cache: ram_valid_reg
+
+hit logic -> valid: hit
+hit logic -> miss: not hit
+
+hit logic -> lru update: hit
+hit logic -> lru update: index
+
+replace index -> lru update: replace_write
+replace index -> lru update: replace_read
+replace index -> lru update: ram_valid
+
+hit logic -> read_data
+hit logic -> prop_read_en
+hit logic -> prop_address
+hit logic -> replace index: not hit
+
+replace index -> propagate dirty: replace_index
+replace index -> propagate dirty: replace
+replace index -> stop cache: replace read
+
+propagate dirty -> stop cache: writing dirty
+propagate dirty -> prop_write_data
+propagate dirty -> prop_write_en
+
+replace index -> replace block: replace_index
+replace index -> replace block: replace
+
