@@ -5,6 +5,8 @@ module tb;
 	parameter ASOC_BITS = 2;
 	parameter BLOCK_BITS = 2;
 
+	parameter BLOCK_SIZE = 2**BLOCK_BITS;
+	parameter ASOC_SIZE = 2**ASOC_BITS;
 
 	logic clk = 1;
 	logic reset_n;
@@ -13,7 +15,7 @@ module tb;
 	logic [DATA_BITS-1:0] write_data;
 	logic write_en;
 	logic ram_valid;
-	logic [DATA_BITS-1:0] ram_data [BLOCK_BITS**2-1:0];
+	logic [BLOCK_SIZE-1:0] [DATA_BITS-1:0] ram_data; 
 
 	logic [DATA_BITS-1:0] read_data;
 	logic valid;
@@ -117,17 +119,16 @@ module tb;
 		#10;
 	
 		$display("stop_cache: %d", cache.stop_cache);
-		$display("valid: %d", cache.cache[0].block[0].control_bits.valid);
-		$display("dirty: %d", cache.cache[0].block[0].control_bits.dirty);
-		$display("lru_number: %d", cache.cache[0].block[0].control_bits.lru_number);
-		$display("tag: %d", cache.cache[0].block[0].tag);
-
+		$display("valid: %d", cache.cache[0].block[ASOC_SIZE-1].control_bits.valid);
+		$display("dirty: %d", cache.cache[0].block[ASOC_SIZE-1].control_bits.dirty);
+		$display("lru_number: %d", cache.cache[0].block[ASOC_SIZE-1].control_bits.lru_number);
+		$display("tag: %d", cache.cache[0].block[ASOC_SIZE-1].tag);
 
 		assert(cache.stop_cache == 0);
-		assert(cache.cache[0].block[0].control_bits.valid == 1);
-		assert(cache.cache[0].block[0].control_bits.dirty == 0);
-		assert(cache.cache[0].block[0].control_bits.lru_number == '1);
-		assert(cache.cache[0].block[0].tag == '0);
+		assert(cache.cache[0].block[ASOC_SIZE-1].control_bits.valid == 1);
+		assert(cache.cache[0].block[ASOC_SIZE-1].control_bits.dirty == 0);
+		assert(cache.cache[0].block[ASOC_SIZE-1].control_bits.lru_number == '1);
+		assert(cache.cache[0].block[ASOC_SIZE-1].tag == '0);
 
 		assert(read_data == '0);
 			else $error("read_data not 0");

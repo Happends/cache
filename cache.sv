@@ -14,7 +14,7 @@ module cache
         input	[DATA_BITS-1:0] write_data, 
         input	write_en,
 	input	ram_valid,
-	input	[DATA_BITS-1:0] ram_data [BLOCK_SIZE-1:0],
+	input	[BLOCK_SIZE-1:0] [DATA_BITS-1:0] ram_data ,
 
 	output  [DATA_BITS-1:0] read_data,
         output  valid,
@@ -42,20 +42,20 @@ module cache
 
 
 	// typedef for cache entries
-	typedef struct packed {
+	typedef struct packed{
 		logic valid;
 		logic dirty;
 		logic [ASOC_BITS-1:0] lru_number;
 	} cache_entry_control_bits_t;
 
-    	typedef struct {
+    	typedef struct packed {
 		cache_entry_control_bits_t control_bits;
         	logic [TAG_BITS-1:0] tag;
-       		logic [DATA_BITS-1:0] data [0:BLOCK_SIZE-1];     // might have to be packed to match input from RAM
+       		logic [BLOCK_SIZE-1:0] [DATA_BITS-1:0] data;     // might have to be packed to match input from RAM
     	} cache_entry_t;
 
-	typedef struct {
-		cache_entry_t block [0:ASOC_SIZE-1];
+	typedef struct packed {
+		cache_entry_t [ASOC_SIZE-1:0] block;
 	} cache_set_t;
 
 	logic [DATA_BITS-1:0] read_data_logic;
@@ -63,7 +63,7 @@ module cache
 	logic miss_logic;
        	logic [RAM_ADDRESS_BITS-1:0] prop_address_logic;
 	logic prop_read_en_logic;
-        logic [DATA_BITS-1:0] prop_write_data_logic [0:BLOCK_SIZE-1];
+        logic [BLOCK_SIZE-1:0] [DATA_BITS-1:0] prop_write_data_logic; 
         logic prop_write_en_logic;
 
 
@@ -72,7 +72,7 @@ module cache
        	logic [DATA_BITS-1:0] write_data_reg;
         logic write_en_reg;
     	logic ram_valid_reg;
-	logic [DATA_BITS-1:0] ram_data_reg [BLOCK_SIZE-1:0];
+	logic [BLOCK_SIZE-1:0] [DATA_BITS-1:0] ram_data_reg; 
 
 
 	cache_address_t cache_address;
