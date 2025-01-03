@@ -1,10 +1,11 @@
 --binary
 cache.sv
+
 tb.sv
 --top tb
 
 //--Wall
--j 0
+-j
 
 --assert
 

@@ -1,6 +1,7 @@
 
 
-msg=$(/home/alexhelmersson/Documents/programming/verilator/bin/verilator -f configs/verilator/verilator.f 2>&1)
+# msg=$(verilator -f configs/verilator/verilator.f)
+msg=$(verilator -f configs/verilator/verilator.f 2>&1)
 
 printf "msg: %s\n" "${msg}"
 
