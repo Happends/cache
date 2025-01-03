@@ -1,41 +1,35 @@
 [*]
-[*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Wed Oct 16 21:31:59 2024
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Fri Jan  3 15:47:38 2025
 [*]
-[dumpfile] "/home/alexhelmersson/Documents/programming/processors/cache/waves.vcd"
-[dumpfile_mtime] "Wed Oct 16 21:31:44 2024"
-[dumpfile_size] 2874
-[savefile] "/home/alexhelmersson/Documents/programming/processors/cache/configs/gtkwave/gtkwave_signals.gtkw"
+[dumpfile] "/home/alex/code/cache/waves.vcd"
+[dumpfile_mtime] "Fri Jan  3 15:29:40 2025"
+[dumpfile_size] 2426
+[savefile] "/home/alex/code/cache/configs/gtkwave/gtkwave_signals.gtkw"
 [timestart] 0
 [size] 1593 600
 [pos] -1 -1
 *-4.696323 33 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb.
 [treeopen] tb.cache.
-[sst_width] 273
+[sst_width] 297
 [signals_width] 246
 [sst_expanded] 1
 [sst_vpaned_height] 157
 @28
+tb.cache.reset_n
 tb.cache.clk
-@22
-tb.cache.address_reg[31:0]
-@28
-tb.cache.cache[0].block[1].control_bits.dirty
 tb.cache.stop_cache
-tb.cache.prop_dirty_wait
-@22
-tb.cache.cache[0].block[1].data[0][31:0]
-@28
-tb.cache.ram_valid
 tb.cache.read_en
 tb.cache.write_en
-tb.cache.prop_dirty_wait
-tb.cache.replace
-tb.cache.replace_read
-@29
-tb.cache.prop_dirty_wait
+@22
+tb.cache.address[31:0]
+tb.cache.read_data[31:0]
 @28
-tb.cache.replace_write
+tb.cache.miss
+tb.cache.ram_valid
+@22
+tb.cache.ram_data[0][31:0]
+tb.cache.ram_data[1][31:0]
 [pattern_trace] 1
 [pattern_trace] 0
