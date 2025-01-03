@@ -107,7 +107,7 @@ module tb;
 		foreach(cache.cache[0].block[i]) begin
 			assert(cache.cache[0].block[i].control_bits.valid == 0);
 			assert(cache.cache[0].block[i].control_bits.dirty == 0);
-			assert(cache.cache[0].block[i].control_bits.lsr_number == 0);
+			assert(cache.cache[0].block[i].control_bits.lru_number == 0);
 			assert(cache.cache[0].block[i].tag == '0);
 		end
 
@@ -119,14 +119,14 @@ module tb;
 		$display("stop_cache: %d", cache.stop_cache);
 		$display("valid: %d", cache.cache[0].block[0].control_bits.valid);
 		$display("dirty: %d", cache.cache[0].block[0].control_bits.dirty);
-		$display("lsr_number: %d", cache.cache[0].block[0].control_bits.lsr_number);
+		$display("lru_number: %d", cache.cache[0].block[0].control_bits.lru_number);
 		$display("tag: %d", cache.cache[0].block[0].tag);
 
 
 		assert(cache.stop_cache == 0);
 		assert(cache.cache[0].block[0].control_bits.valid == 1);
 		assert(cache.cache[0].block[0].control_bits.dirty == 0);
-		assert(cache.cache[0].block[0].control_bits.lsr_number == '1);
+		assert(cache.cache[0].block[0].control_bits.lru_number == '1);
 		assert(cache.cache[0].block[0].tag == '0);
 
 		assert(read_data == '0);
@@ -159,7 +159,7 @@ module tb;
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
 					assert(cache.cache[0].block[i].control_bits.dirty == write);
-					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b11);
+					assert(cache.cache[0].block[i].control_bits.lru_number == 'b11);
 					assert(cache.cache[0].block[i].data[0] == data1) else $error("block_data: %d, should be: %d\n", cache.cache[0].block[i].data[0], data1);
 				end
 			end
@@ -174,7 +174,7 @@ module tb;
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
 					assert(cache.cache[0].block[i].control_bits.dirty == write);
-					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b10);
+					assert(cache.cache[0].block[i].control_bits.lru_number == 'b10);
 					assert(cache.cache[0].block[i].data[0] == data2);
 				end
 			end
@@ -189,7 +189,7 @@ module tb;
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
 					assert(cache.cache[0].block[i].control_bits.dirty == write);
-					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b01);
+					assert(cache.cache[0].block[i].control_bits.lru_number == 'b01);
 					assert(cache.cache[0].block[i].data[0] == data3);
 				end
 			end
@@ -204,7 +204,7 @@ module tb;
 					found = 1;
 					assert(cache.cache[0].block[i].control_bits.valid == 1);
 					assert(cache.cache[0].block[i].control_bits.dirty == write);
-					assert(cache.cache[0].block[i].control_bits.lsr_number == 'b00);
+					assert(cache.cache[0].block[i].control_bits.lru_number == 'b00);
 					assert(cache.cache[0].block[i].data[0] == data4);
 				end
 			end

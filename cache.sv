@@ -45,7 +45,7 @@ module cache
 	typedef struct packed {
 		logic valid;
 		logic dirty;
-		logic [ASOC_BITS-1:0] lsr_number;
+		logic [ASOC_BITS-1:0] lru_number;
 	} cache_entry_control_bits_t;
 
     	typedef struct {
@@ -97,7 +97,7 @@ module cache
 			$error("ERROR: cache settings wrong");
         	end
         	$display("cache settings ok");
-		cache = '{default: '{block: '{default: '{control_bits: '{valid: 0, dirty: 0, lsr_number: '0}, tag: '0, data: '{default: '1}}}}}; // valid temporary
+		cache = '{default: '{block: '{default: '{control_bits: '{valid: 0, dirty: 0, lru_number: '0}, tag: '0, data: '{default: '1}}}}}; // valid temporary
     	end
 
 
@@ -187,22 +187,22 @@ module cache
 		end
 	end
 
-	always_ff @(posedge clk)  begin: lsr_number_update
+	always_ff @(posedge clk)  begin: lru_number_update
 		if (hit) begin
 			foreach (cache[cache_address.index].block[i]) begin
-				if(cache[cache_address.index].block[i].control_bits.lsr_number > cache[cache_address.index].block[index].control_bits.lsr_number) begin
-					cache[cache_address.index].block[i].control_bits.lsr_number = cache[cache_address.index].block[i].control_bits.lsr_number - 1;
+				if(cache[cache_address.index].block[i].control_bits.lru_number > cache[cache_address.index].block[index].control_bits.lru_number) begin
+					cache[cache_address.index].block[i].control_bits.lru_number = cache[cache_address.index].block[i].control_bits.lru_number - 1;
 				end
 			end
-			cache[cache_address.index].block[index].control_bits.lsr_number = '1;
+			cache[cache_address.index].block[index].control_bits.lru_number = '1;
 
 		end else if (replace_write | (replace_read & ram_valid_reg)) begin
 			foreach (cache[cache_address.index].block[i]) begin
-				if(cache[cache_address.index].block[i].control_bits.lsr_number > cache[cache_address.index].block[replace_index].control_bits.lsr_number) begin
-					cache[cache_address.index].block[i].control_bits.lsr_number = cache[cache_address.index].block[i].control_bits.lsr_number - 1;
+				if(cache[cache_address.index].block[i].control_bits.lru_number > cache[cache_address.index].block[replace_index].control_bits.lru_number) begin
+					cache[cache_address.index].block[i].control_bits.lru_number = cache[cache_address.index].block[i].control_bits.lru_number - 1;
 				end
 			end
-			cache[cache_address.index].block[replace_index].control_bits.lsr_number = '1;
+			cache[cache_address.index].block[replace_index].control_bits.lru_number = '1;
 		end
 
 	end
@@ -223,7 +223,7 @@ module cache
 	always_comb begin: replace_index_calc_LSR
 		if (miss_logic) begin
 			foreach (cache[cache_address.index].block[i]) begin
-				if (~|cache[cache_address.index].block[i].control_bits.lsr_number) begin
+				if (~|cache[cache_address.index].block[i].control_bits.lru_number) begin
 					replace_index = i;
 					replace = 1;
 					break;
